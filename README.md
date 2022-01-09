@@ -17,7 +17,7 @@ Initializes the memory pool given blocksize bs, blockcount bc and a pointer m to
 #### void *mp_malloc(mp_pool_t *mp);
 Returns a pointer to a free block in the memory pool. If no free blocks are left it will set mp_error to MP_OUT_OF_MEMORY and return NULL. Guaranteed to run in constant time.
 #### void mp_free(mp_pool_t *mp, void *b);
-Adds b to the list of free blocks.
+Adds b to the list of free blocks. Guaranteed to run in constant time.
 ### Variables
 #### mp_error_t mp_error
 Global error variable used for error handling in case any library function exits abnormally.
