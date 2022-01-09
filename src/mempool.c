@@ -1,101 +1,78 @@
+/*
+    MIT License
+
+    Copyright (c) 2021 Adrian Reuter
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+ */
+
 #include <stddef.h>
-#include <stdlib.h>
 
 #include "mempool.h"
 
 mp_error_t mp_error;
 
-int mp_init(size_t block_size, size_t block_count, mp_pool_t *pool)
-{
-    if(!pool) {
-        mp_error = MP_POOL_POINTER_NULL;
-        return -1;
-    }
+struct block {
+    void *next;
+};
 
-    if(block_size < sizeof(size_t)) {
+int mp_init(size_t bs, size_t bc, void *m, mp_pool_t *mp)
+{
+    if(bs < sizeof(size_t)) {
         mp_error = MP_INVALID_BLOCKSIZE;
         return -1;
     }
-
-    // initialization of the pool
-    pool->block_size = block_size;
-    pool->block_count = block_count;
-    pool->pool_ptr = malloc(block_size * block_count);
-    if(!pool->pool_ptr) {
-        mp_error = MP_MALLOC_ERROR;
-        return -1;
-    }
-
-    // initialization of the list storing the free blocks
-    pool->block_ptr = pool->pool_ptr;
-    if(block_count == 0)
-        return 0;
-    
-    union block {
-        union block *next_block;
-        char block_data[block_size];
-    } *curr_block = (union block *) pool->block_ptr;
-
-    for(size_t i = 0; i < block_count - 1; i++)
-        curr_block->next_block = ++curr_block;
-    curr_block->next_block = NULL;
+    mp->bs = bs;
+    mp->ul_bc = bc;
+    mp->b = NULL;
+    mp->ul_b = m;
 
     return 0;
 }
 
-void *mp_malloc(mp_pool_t *pool)
-{
-    if(!pool) {
-        mp_error = MP_POOL_POINTER_NULL;
-        return NULL;
+void *mp_malloc(mp_pool_t *mp)
+{   
+    /*
+     * 1. First we try to allocate an unlinked block
+     * 2. In case there are no more unlinked blocks left we try to return the head block from the list
+     * 3. Otherwise we will have to abort since there are no free blocks left
+     */
+    if(mp->ul_bc > 0) {
+        mp->ul_bc--;
+        void *b = mp->ul_b;
+        mp->ul_b = (void *) (((unsigned char *) mp->ul_b) + mp->bs);
+        return b;
+    } else if(mp->b) {
+        void *b = mp->b;
+        mp->b = ((struct block *) mp->b)->next;
+        return b;
     }
 
-    if(!pool->block_ptr) {
-        mp_error = MP_OUT_OF_MEMORY;
-        return NULL;
-    }
-
-    union block {
-        union block *next_block;
-        char block_data[pool->block_size];
-    } *curr_block = (union block *) pool->block_ptr;
-
-    pool->block_ptr = (void *) curr_block->next_block;
-
-    return (void *) curr_block;
+    mp_error = MP_OUT_OF_MEMORY;
+    return NULL;
 }
 
-int mp_free(mp_pool_t *pool, void *block)
+void mp_free(mp_pool_t *mp, void *b)
 {
-    if(!pool) {
-        mp_error = MP_POOL_POINTER_NULL;
-        return -1;
-    }
-
-    if(!block) {
-        mp_error = MP_BLOCK_POINTER_NULL;
-        return -1;
-    }
-
-    union block {
-        union block *next_block;
-        char block_data[pool->block_size];
-    } *curr_block = (union block *) block;
-
-    curr_block->next_block = (union block *) pool->block_ptr;
-    pool->block_ptr = (void *) curr_block;
-
-    return 0;
-}
-
-int mp_destroy(mp_pool_t *pool)
-{
-    if(!pool) {
-        mp_error = MP_POOL_POINTER_NULL;
-        return -1;
-    }
-
-    free(pool->pool_ptr);
-
-    return 0;
+    /*
+     * We add b to the head of the list of free blocks
+     */
+    ((struct block *) b)->next = mp->b;
+    mp->b = b;
 }
