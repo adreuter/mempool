@@ -2,7 +2,36 @@
 ## Description
 mempool is a tiny static C-library providing a minimal and efficient implementation of a memory pool. For more information on memory pool based allocation see [this Wikipedia Page](https://en.wikipedia.org/wiki/Memory_pool)
 ## Usage
-See test/test.c
+```C
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "mempool.h"
+
+int main(void)
+{
+    size_t bc = 8;    // block count
+    size_t bs = 512;  // block size
+    mp_pool_t mp;
+
+    // first we need to allocate the pool memory on the heap
+    void *m = malloc(bc * bs);
+    if(!m) {
+        return -1;
+    }
+
+    // initialize mp
+    mp_init(bs, bc, m, &mp);
+
+    // now we can request blocks from the pool using mp_malloc
+    // and free blocks using mp_free
+
+    // free the pool's memory after we don't need it anymore
+    free(m);
+    return 0;
+}
+```
 ## Documentation
 ### Types
 ```C
