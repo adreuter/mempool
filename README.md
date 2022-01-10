@@ -5,21 +5,33 @@ mempool is a tiny static C-library providing a minimal and efficient implementat
 See test/test.c
 ## Documentation
 ### Types
-#### mp_pool_t
+```C
+mp_pool_t
+```
 This type represents the memory pool.
-#### mp_error_t
+```C
+mp_error_t
+```
 A value of this type can be
-- MP_INVALID_BLOCKSIZE
-- MP_OUT_OF_MEMORY
+- `MP_INVALID_BLOCKSIZE`
+- `MP_OUT_OF_MEMORY`
 ### Functions
-#### int mp_init(size_t bs, size_t bc, void *m, mp_pool_t *mp);
-Initializes the memory pool given blocksize bs, blockcount bc and a pointer m to a piece of memory of size bc * bs. bs is required to be at least sizeof(size_t). Otherwise it sets mp_error to MP_INVALID_BLOCKSIZE and returns -1. Guaranteed to run in constant time.
-#### void *mp_malloc(mp_pool_t *mp);
-Returns a pointer to a free block in the memory pool. If no free blocks are left it will set mp_error to MP_OUT_OF_MEMORY and return NULL. Guaranteed to run in constant time.
-#### void mp_free(mp_pool_t *mp, void *b);
+```C
+int mp_init(size_t bs, size_t bc, void *m, mp_pool_t *mp)
+```
+Initializes the memory pool given blocksize bs, blockcount bc and a pointer m to a piece of memory of minimum size `bc * bs`. bs is required to be at least `sizeof(size_t)`. Otherwise it sets mp_error to `MP_INVALID_BLOCKSIZE` and returns -1. Guaranteed to run in constant time.
+```C
+void *mp_malloc(mp_pool_t *mp)
+```
+Returns a pointer to a free block in the memory pool. If no free blocks are left it will set mp_error to `MP_OUT_OF_MEMORY` and return `NULL`. Guaranteed to run in constant time.
+```C
+void mp_free(mp_pool_t *mp, void *b)
+```
 Adds b to the list of free blocks. Guaranteed to run in constant time.
 ### Variables
-#### mp_error_t mp_error
+```C
+mp_error_t mp_error
+```
 Global error variable used for error handling in case any library function exits abnormally.
 ## Dependencies
 stddef.h

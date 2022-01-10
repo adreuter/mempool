@@ -28,7 +28,7 @@ int main(void)
         *b = i;
     }
     assert(!mp_malloc(&mp));
-    assert(mp_error != MP_OUT_OF_MEMORY);
+    assert(mp_error == MP_OUT_OF_MEMORY);
 
     free(m);
     return 0;

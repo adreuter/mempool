@@ -50,7 +50,7 @@ void *mp_malloc(mp_pool_t *mp)
 {   
     /*
      * 1. First we try to allocate an unlinked block
-     * 2. In case there are no more unlinked blocks left we try to return the head block from the list
+     * 2. In case there are no more unlinked blocks left we try to return the head from the list of free blocks
      * 3. Otherwise we will have to abort since there are no free blocks left
      */
     if(mp->ul_bc > 0) {
@@ -71,7 +71,7 @@ void *mp_malloc(mp_pool_t *mp)
 void mp_free(mp_pool_t *mp, void *b)
 {
     /*
-     * We add b to the head of the list of free blocks
+     * We add b as the head of the list of free blocks
      */
     ((struct block *) b)->next = mp->b;
     mp->b = b;
