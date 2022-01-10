@@ -35,7 +35,6 @@ struct block {
 int mp_init(size_t bs, size_t bc, void *m, mp_pool_t *mp)
 {
     if(bs < sizeof(size_t)) {
-        mp_error = MP_INVALID_BLOCKSIZE;
         return -1;
     }
     mp->bs = bs;
@@ -64,7 +63,6 @@ void *mp_malloc(mp_pool_t *mp)
         return b;
     }
 
-    mp_error = MP_OUT_OF_MEMORY;
     return NULL;
 }
 

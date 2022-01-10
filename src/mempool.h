@@ -37,13 +37,7 @@ struct mp_data {
     void *ul_b;     // a pointer to the first unlinked block 
 };
 
-enum mp_error {
-    MP_OUT_OF_MEMORY,
-    MP_INVALID_BLOCKSIZE
-};
-
 typedef struct mp_data mp_pool_t;
-typedef enum mp_error mp_error_t;
 
 /*
  * Initialize the memory pool.
@@ -61,7 +55,5 @@ void *mp_malloc(mp_pool_t *mp);
  * Adds a block to the list of free blocks
  */
 void mp_free(mp_pool_t *mp, void *b);
-
-extern mp_error_t mp_error;
 
 #endif /* MEMPOOL_H */
