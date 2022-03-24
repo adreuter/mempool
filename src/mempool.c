@@ -26,8 +26,6 @@
 
 #include "mempool.h"
 
-mp_error_t mp_error;
-
 struct block {
     void *next;
 };
